@@ -14,7 +14,8 @@ def main():
     dataloader_m, runner, training_module, aux_modules = create_modules(modules, config)
 
     if config.experiment.checkpoint_path is not None and os.path.exists(config.experiment.checkpoint_path):
-        sd = torch.load(config.experiment.checkpoint_path)
+        #sd = torch.load(config.experiment.checkpoint_path)
+        sd = torch.load(config.experiment.checkpoint_path, map_location="cpu", weights_only=False)
 
         if 'training_module' in sd:
             training_module.load_state_dict(sd['training_module'])

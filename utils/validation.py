@@ -114,7 +114,8 @@ def load_runner_from_checkpoint(checkpoint_path: str, modules: dict, experiment_
     runner_module, runner, _ = create_runner(modules, experiment_config,
                                              create_aux_modules=False)
 
-    sd = torch.load(checkpoint_path)
+    #sd = torch.load(checkpoint_path)
+    sd = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
 
     sd = sd['training_module']
     runner.load_state_dict(sd)

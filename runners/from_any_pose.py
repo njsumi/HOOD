@@ -15,6 +15,7 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from dataclasses import field
 
 from runners.utils.collector import SampleCollector
 from runners.utils.collision import CollisionPreprocessor
@@ -53,8 +54,10 @@ class OptimConfig:
 
 @dataclass
 class Config:
-    optimizer: OptimConfig = OptimConfig()
-    material: MaterialConfig = MaterialConfig()
+    #optimizer: OptimConfig = OptimConfig()
+    optimizer: OptimConfig = field(default_factory=OptimConfig)
+    #material: MaterialConfig = MaterialConfig()
+    material: MaterialConfig = field(default_factory=MaterialConfig)
     warmup_steps: int = 100                 # number of steps to warm up the normalization statistics
     increase_roll_every: int = 5000         # we start from predicting only one step, then increase the number of steps each `increase_roll_every` steps
     roll_max: int = 5                       # maximum number of steps to predict

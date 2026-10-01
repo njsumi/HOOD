@@ -15,11 +15,14 @@ class BaseBlock(MessagePassing):
         node_processor_dict = {k: v() for k, v in node_processor_dict.items()}
         self.node_processor_dict = nn.ModuleDict(node_processor_dict)
 
-        self.inspector.inspect(self.message)
+        #self.inspector.inspect(self.message)
+        self.inspector.inspect_signature(self.message)
 
-        self.__user_args__ = self.inspector.keys(
-            ['message', 'aggregate', 'update']).difference(
-            self.special_args)
+        #self.__user_args__ = self.inspector.keys(
+        #    ['message', 'aggregate', 'update']).difference(
+        #    self.special_args)
+        self.__user_args__ = self.inspector.get_flat_param_names(
+            ['message', 'aggregate', 'update'], exclude=self.special_args)
 
     def forward(self, sample):
         sample = self.propagate(sample)
@@ -38,10 +41,11 @@ class BaseBlock(MessagePassing):
         return out_features
 
     def aggregate_nodes(self, edge_features, edge_index, size, **kwargs):
-        user_args = self.inspector.keys(['aggregate']).difference(self.special_args)
-        coll_dict = self._collect(user_args, edge_index,
-                                     size, kwargs)
-        aggr_kwargs = self.inspector.distribute('aggregate', coll_dict)
+        #user_args = self.inspector.keys(['aggregate']).difference(self.special_args)
+        user_args = self.inspector.get_param_names('aggregate', exclude=self.special_args)
+        coll_dict = self._collect(user_args, edge_index, size, kwargs)
+        #aggr_kwargs = self.inspector.distribute('aggregate', coll_dict)
+        aggr_kwargs = self.inspector.collect_param_data('aggregate', coll_dict)
         node_features = self.aggregate(edge_features, **aggr_kwargs)
         return node_features
 
@@ -65,7 +69,8 @@ class BaseBlock(MessagePassing):
                                                 target_features=target_features))
         coll_dict['edge_features'] = mesh_edges.features
         coll_dict['edge_processor_key'] = edge_processor_key
-        msg_kwargs = self.inspector.distribute('message', coll_dict)
+        #msg_kwargs = self.inspector.distribute('message', coll_dict)
+        msg_kwargs = self.inspector.collect_param_data('message', coll_dict)
         out = self.message(**msg_kwargs)
         return out
 

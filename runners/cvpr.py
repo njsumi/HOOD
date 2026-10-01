@@ -15,6 +15,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
 from tqdm import tqdm
+from dataclasses import field
 
 from utils.cloth_and_material import FaceNormals, ClothMatAug, Material
 from utils.common import move2device, gather, save_checkpoint, add_field_to_pyg_batch, \
@@ -54,8 +55,10 @@ class OptimConfig:
 
 @dataclass
 class Config:
-    optimizer: OptimConfig = OptimConfig()
-    material: MaterialConfig = MaterialConfig()
+    #optimizer: OptimConfig = OptimConfig()
+    optimizer: OptimConfig = field(default_factory=OptimConfig)
+    #material: MaterialConfig = MaterialConfig()
+    material: MaterialConfig = field(default_factory=MaterialConfig)
     warmup_steps: int = 100
     n_opt_steps: int = 1
     increase_roll_every: int = -1

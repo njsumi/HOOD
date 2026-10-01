@@ -16,13 +16,19 @@ class GraphNetBlock(MessagePassing):
         self.mesh_edge_processor = edge_processor_fn()
         self.world_edge_processor = edge_processor_fn()
 
-        self.inspector.inspect(self.message_mesh)
-        self.inspector.inspect(self.message_world_direct)
-        self.inspector.inspect(self.message_world_inverse)
+        #self.inspector.inspect(self.message_mesh)
+        #self.inspector.inspect(self.message_world_direct)
+        #self.inspector.inspect(self.message_world_inverse)
+        self.inspector.inspect_signature(self.message_mesh)
+        self.inspector.inspect_signature(self.message_world_direct)
+        self.inspector.inspect_signature(self.message_world_inverse)
 
-        self.__user_args__ = self.inspector.keys(
-            ['message_mesh', 'message_world_direct', 'message_world_inverse', 'aggregate', 'update']).difference(
-            self.special_args)
+        #self.__user_args__ = self.inspector.keys(
+        #    ['message_mesh', 'message_world_direct', 'message_world_inverse', 'aggregate', 'update']).difference(
+        #    self.special_args)
+        self.__user_args__ = self.inspector.get_flat_param_names(
+            ['message_mesh', 'message_world_direct', 'message_world_inverse', 'aggregate', 'update'],
+            exclude=self.special_args)
 
     def forward(self, sample):
         sample = self.propagate(sample)
@@ -50,7 +56,8 @@ class GraphNetBlock(MessagePassing):
         coll_dict = self._collect(self.__user_args__, edge_index,
                                      size, dict(node_features=node_features))
         coll_dict['edge_features'] = sample['mesh_edge'].features
-        msg_kwargs = self.inspector.distribute('message_mesh', coll_dict)
+        #msg_kwargs = self.inspector.distribute('message_mesh', coll_dict)
+        msg_kwargs = self.inspector.collect_param_data('message_mesh', coll_dict)
         out = self.message_mesh(**msg_kwargs)
         return out
 
@@ -64,11 +71,13 @@ class GraphNetBlock(MessagePassing):
         size = (N_cloth, N_obstacle)
 
         size = self._check_input(edge_index, size)
-        __user_args__ = self.inspector.keys(['message_world_direct']).difference(self.special_args)
+        #__user_args__ = self.inspector.keys(['message_world_direct']).difference(self.special_args)
+        __user_args__ = self.inspector.get_param_names('message_world_direct', exclude=self.special_args)
         coll_dict = self._collect(__user_args__, edge_index,
                                      size, dict(cloth_features=cloth_features, obstacle_features=obstacle_features))
         coll_dict['edge_features'] = edge_features
-        msg_kwargs = self.inspector.distribute('message_world_direct', coll_dict)
+        #msg_kwargs = self.inspector.distribute('message_world_direct', coll_dict)
+        msg_kwargs = self.inspector.collect_param_data('message_world_direct', coll_dict)
         out = self.message_world_direct(**msg_kwargs)
         return out
 
@@ -82,18 +91,21 @@ class GraphNetBlock(MessagePassing):
         size = (N_obstacle, N_cloth)
 
         size = self._check_input(edge_index, size)
-        __user_args__ = self.inspector.keys(['message_world_inverse']).difference(self.special_args)
+        #__user_args__ = self.inspector.keys(['message_world_inverse']).difference(self.special_args)
+        __user_args__ = self.inspector.get_param_names('message_world_inverse', exclude=self.special_args)
         coll_dict = self._collect(__user_args__, edge_index,
                                      size, dict(cloth_features=cloth_features, obstacle_features=obstacle_features))
         coll_dict['edge_features'] = edge_features
-        msg_kwargs = self.inspector.distribute('message_world_inverse', coll_dict)
+        #msg_kwargs = self.inspector.distribute('message_world_inverse', coll_dict)
+        msg_kwargs = self.inspector.collect_param_data('message_world_inverse', coll_dict)
         out = self.message_world_inverse(**msg_kwargs)
         return out
 
     def aggregate_nodes(self, edge_features, edge_index, user_args, size, **kwargs):
         coll_dict = self._collect(user_args, edge_index,
                                      size, kwargs)
-        aggr_kwargs = self.inspector.distribute('aggregate', coll_dict)
+        #aggr_kwargs = self.inspector.distribute('aggregate', coll_dict)
+        aggr_kwargs = self.inspector.collect_param_data('aggregate', coll_dict)
         node_features = self.aggregate(edge_features, **aggr_kwargs)
         return node_features
 
@@ -110,7 +122,8 @@ class GraphNetBlock(MessagePassing):
         world_direct_features_updated = self.update_world_edge_direct_features(sample)
         world_inverse_features_updated = self.update_world_edge_inverse_features(sample)
 
-        aggr_args = self.inspector.keys(['aggregate']).difference(self.special_args)
+        #aggr_args = self.inspector.keys(['aggregate']).difference(self.special_args)
+        aggr_args = self.inspector.get_param_names('aggregate', exclude=self.special_args)
         mesh_edge_index = sample['mesh_edge'].edge_index
         mesh_size = (N_cloth, N_cloth)
         cloth_features_from_mesh = self.aggregate_nodes(mesh_edge_features_updated, mesh_edge_index, aggr_args,

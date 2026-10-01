@@ -1,7 +1,7 @@
 import importlib
 import os
 import typing
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -31,8 +31,10 @@ class MainConfig:
     config: Optional[str] = None           # name of the config file relative to $HOOD_PROJECT/configs (without .yaml)
 
     device: str = 'cuda:0'                 # device to use
-    dataloader: DataConfig = DataConfig()
-    experiment: ExperimentConfig = ExperimentConfig()
+    #dataloader: DataConfig = DataConfig()
+    dataloader: DataConfig = field(default_factory=DataConfig)
+    #experiment: ExperimentConfig = ExperimentConfig()
+    experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
     detect_anomaly: bool = False           # torch.autograd.detect_anomaly
     step_start: int = 0                    # start iteration
 

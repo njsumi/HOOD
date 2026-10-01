@@ -22,6 +22,7 @@ from runners.utils.material import RandomMaterial
 from utils.cloth_and_material import FaceNormals, ClothMatAug
 from utils.common import move2device, save_checkpoint, add_field_to_pyg_batch
 from utils.defaults import DEFAULTS
+from dataclasses import field
 
 
 @dataclass
@@ -53,8 +54,10 @@ class OptimConfig:
 
 @dataclass
 class Config:
-    optimizer: OptimConfig = OptimConfig()
-    material: MaterialConfig = MaterialConfig()
+    #optimizer: OptimConfig = OptimConfig()
+    optimizer: OptimConfig = field(default_factory=OptimConfig)
+    #material: MaterialConfig = MaterialConfig()
+    material: MaterialConfig = field(default_factory=MaterialConfig)
     warmup_steps: int = 100                 # number of steps to warm up the normalization statistics
     increase_roll_every: int = 5000         # we start from predicting only one step, then increase the number of steps each `increase_roll_every` steps
     roll_max: int = 5                       # maximum number of steps to predict
